@@ -10,16 +10,29 @@ namespace GZipTest
         private const int QueueSize = 64;
         private const int BlockSize = 64 * 1024 * 1024;
 
+        private static IProcessor _processor;
+
         public static void Main(string[] args)
         {
+            Console.CancelKeyPress += Console_CancelKeyPress;
+
             var arguments = new CommandLine.Parser().Parse(args);
-            var processor = GetProcessor(arguments);
+            _processor = GetProcessor(arguments);
             Stopwatch stopwatch = Stopwatch.StartNew();
-            processor.Run();
+            _processor.Run();
             stopwatch.Stop();
             Console.WriteLine(stopwatch.ElapsedMilliseconds);
 
             Console.ReadKey();
+        }
+
+        private static void Console_CancelKeyPress(object sender, ConsoleCancelEventArgs e)
+        {
+            if (e.SpecialKey == ConsoleSpecialKey.ControlC)
+            {
+                e.Cancel = true;
+                _processor.Cancel();
+            }
         }
 
         //TODO: move method to another class
