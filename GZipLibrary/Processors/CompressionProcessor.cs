@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.IO.Compression;
 using GZipLibrary.Blocks;
 using GZipLibrary.Blocks.Readers;
@@ -8,20 +9,26 @@ namespace GZipLibrary.Processors
 {
     public class CompressionProcessor : BaseProcessor
     {
-        public CompressionProcessor(string inputFilePath, string outputFilePath, int blockSize, int queueSize) : base(inputFilePath, outputFilePath, blockSize, queueSize)
+        public CompressionProcessor(string inputFilePath, string outputFilePath, int blockSize, int queueSize) : base(inputFilePath, outputFilePath, queueSize)
         {
+            BlockSize = blockSize;
         }
 
         protected override BlockReader GetBlockReader()
         {
             var fileStream = new FileStream(InputFilePath, FileMode.Open, FileAccess.Read);
+            FullFileSize = fileStream.Length;
             return new UncompressedBlockReader(fileStream, BlockSize);
         }
 
         protected override BlockWriter GetBlockWriter()
         {
             var fileStream = new FileStream(OutputFilePath, FileMode.Create, FileAccess.Write);
-            return new CompressedBlockWriter(fileStream, BlockSize);
+            
+            WriteNumberToStream(FullFileSize, fileStream);
+            WriteNumberToStream(BlockSize, fileStream);
+
+            return new CompressedBlockWriter(fileStream);
         }
 
         protected override void DoActionWithBlock(Block block)
@@ -35,6 +42,12 @@ namespace GZipLibrary.Processors
 
                 block.Data = stream.ToArray();
             }
+        }
+
+        private void WriteNumberToStream(long number, Stream stream)
+        {
+            var sizeBytes = BitConverter.GetBytes(number);
+            stream.Write(sizeBytes, 0, sizeBytes.Length);
         }
     }
 }

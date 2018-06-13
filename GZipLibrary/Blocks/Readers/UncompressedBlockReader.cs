@@ -6,14 +6,16 @@ namespace GZipLibrary.Blocks.Readers
     public class UncompressedBlockReader : BlockReader
     {
         private int _currentBlockId;
+        private long _blockSize;
 
-        public UncompressedBlockReader(Stream stream, int blockSize) : base(stream, blockSize)
+        public UncompressedBlockReader(Stream stream, long blockSize) : base(stream)
         {
+            _blockSize = blockSize;
         }
 
         public override bool Read(out Block block)
         {
-            var blockSize = Math.Min(BlockSize, Stream.Length - Stream.Position);
+            var blockSize = Math.Min(_blockSize, Stream.Length - Stream.Position);
             var buffer = new byte[blockSize];
 
             if (Stream.Read(buffer, 0, buffer.Length) > 0)
@@ -24,11 +26,6 @@ namespace GZipLibrary.Blocks.Readers
 
             block = null;
             return false;
-        }
-
-        public override long GetOriginalFileSize()
-        {
-            return Stream.Length;
         }
     }
 }

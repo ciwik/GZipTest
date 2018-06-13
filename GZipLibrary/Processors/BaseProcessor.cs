@@ -9,62 +9,47 @@ namespace GZipLibrary.Processors
     public abstract class BaseProcessor : IProcessor
     {
         private readonly BlockQueue _readBlockQueue, _writeBlockQueue;
-        private Dictionary<Thread, ManualResetEvent> _compressionThreads;
+        private Dictionary<Thread, ManualResetEvent> _actionThreads;
         private bool _isCancelled;
 
         protected string InputFilePath, OutputFilePath;
-        protected int BlockSize;
+        protected long BlockSize, FullFileSize;
         
-        protected BaseProcessor(string inputFilePath, string outputFilePath, int blockSize, int queueSize)
+        protected BaseProcessor(string inputFilePath, string outputFilePath, int queueSize)
         {
             InputFilePath = inputFilePath;
             OutputFilePath = outputFilePath;
-            BlockSize = blockSize;
 
             _readBlockQueue = new BlockQueue(queueSize);
             _writeBlockQueue = new BlockQueue(queueSize);
         }
 
-        protected long LastBlockSize;
-        protected long BlocksCount;
-        private long _fullFileSize;
-        private void Read()
+        private void Read(BlockReader reader)
         {
-            using (var reader = GetBlockReader())
+            while (!_isCancelled && reader.Read(out Block block))
             {
-                _fullFileSize = reader.GetOriginalFileSize();
-                LastBlockSize = _fullFileSize % BlockSize;
-                BlocksCount = _fullFileSize / BlockSize + (LastBlockSize == 0 ? 0 : 1);
-
-                while (!_isCancelled && reader.Read(out Block block))
-                {
-                    _readBlockQueue.Enqueue(block);
-                }
-
-                _readBlockQueue.Close();
+                _readBlockQueue.Enqueue(block);
             }
+
+            _readBlockQueue.Close();
+            reader.Dispose();
         }
 
-        private void Write()
+        private void Write(BlockWriter writer)
         {
-            using (var writer = GetBlockWriter())
+            while (!_isCancelled && _writeBlockQueue.TryDequeue(out Block block))
             {
-                if (this is CompressionProcessor)
-                {
-                    writer.SetOriginalFileSize(_fullFileSize);
-                }
-                while (!_isCancelled && _writeBlockQueue.TryDequeue(out Block block))
-                {
-                    writer.Write(block);
-                }
+                writer.Write(block);
             }
+
+            writer.Dispose();
         }
 
         private Thread CreateThread (ThreadStart action)
         {
             return new Thread(action)
             {
-                Priority = ThreadPriority.AboveNormal,
+                Priority = ThreadPriority.BelowNormal,
                 IsBackground = true
             };
         }
@@ -77,7 +62,7 @@ namespace GZipLibrary.Processors
                 _writeBlockQueue.Enqueue(block);
             }
 
-            _compressionThreads[Thread.CurrentThread].Set();
+            _actionThreads[Thread.CurrentThread].Set();
         }
 
         protected abstract BlockReader GetBlockReader();
@@ -87,10 +72,13 @@ namespace GZipLibrary.Processors
         public void Run()
         {
             int compressionThreadsNumber = (Environment.ProcessorCount > 2) ? Environment.ProcessorCount - 2 : 1;
-            _compressionThreads = new Dictionary<Thread, ManualResetEvent>();
+            _actionThreads = new Dictionary<Thread, ManualResetEvent>();
 
-            var readingThread = CreateThread(Read);
-            var writingThread = CreateThread(Write);
+            var blockReader = GetBlockReader();
+            var blockWriter = GetBlockWriter();
+
+            var readingThread = CreateThread(() => Read(blockReader));
+            var writingThread = CreateThread(() => Write(blockWriter));
 
             readingThread.Start();
             writingThread.Start();
@@ -98,13 +86,13 @@ namespace GZipLibrary.Processors
             for (int i = 0; i < compressionThreadsNumber; i++)
             {
                 var thread = CreateThread(MakeActionWithNextBlock);
-                _compressionThreads.Add(thread, new ManualResetEvent(false));;             
+                _actionThreads.Add(thread, new ManualResetEvent(false));;             
                 thread.Start();
             }
             
             //TODO: Stopwatch stopwatch = Stopwatch.StartNew();
             readingThread.Join();
-            WaitHandle.WaitAll(_compressionThreads.Values.ToArray());
+            WaitHandle.WaitAll(_actionThreads.Values.ToArray());
             _writeBlockQueue.Close();            
             writingThread.Join();            
         }

@@ -33,17 +33,5 @@ namespace GZipLibrary.Blocks
 
             return result;
         }
-
-        public static Block CreateWithBytes(byte[] data, out long endPosition)
-        {
-            var id = BitConverter.ToInt64(data, 0);
-            var size = BitConverter.ToInt64(data, sizeof(long));
-
-            byte[] result = new byte[size];
-            Buffer.BlockCopy(data, 2 * sizeof(long), result, 0, result.Length);
-
-            endPosition = 2 * sizeof(long) + size;
-            return new Block (id, result);
-        }
     }
 }

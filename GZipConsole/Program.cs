@@ -30,7 +30,7 @@ namespace GZipTest
                 case CompressionMode.Compress:
                     return new CompressionProcessor(arguments.InputFilePath, arguments.OutputFilePath, BlockSize, QueueSize);
                 case CompressionMode.Decompress:
-                    return new DecompressionProcessor(arguments.InputFilePath, arguments.OutputFilePath, BlockSize, QueueSize);
+                    return new DecompressionProcessor(arguments.InputFilePath, arguments.OutputFilePath, QueueSize);
             }
             //TODO
             throw new Exception();

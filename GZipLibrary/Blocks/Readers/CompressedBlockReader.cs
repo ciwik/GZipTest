@@ -5,7 +5,7 @@ namespace GZipLibrary.Blocks.Readers
 {
     public class CompressedBlockReader : BlockReader
     {
-        public CompressedBlockReader(Stream stream, int blockSize) : base(stream, blockSize)
+        public CompressedBlockReader(Stream stream) : base(stream)
         {
         }        
 
@@ -25,19 +25,6 @@ namespace GZipLibrary.Blocks.Readers
 
             block = new Block();
             return false;
-        }
-
-        public override long GetOriginalFileSize()
-        {
-            //long prevPosition = Stream.Position;
-            Stream.Seek(0, SeekOrigin.Begin);
-
-            var buffer = new byte[sizeof(long)];
-            Stream.Read(buffer, 0, buffer.Length);
-            var size = BitConverter.ToInt64(buffer, 0);
-            //Stream.Seek(prevPosition, SeekOrigin.Begin);
-
-            return size;
         }
     }
 }

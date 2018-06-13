@@ -6,17 +6,13 @@ namespace GZipLibrary.Blocks
     public abstract class BlockReader : IDisposable
     {
         protected Stream Stream;
-        protected int BlockSize;
 
-        protected BlockReader(Stream stream, int blockSize)
+        protected BlockReader(Stream stream)
         {
             Stream = stream;
-            BlockSize = blockSize;
         }
 
         public abstract bool Read(out Block block);
-
-        public abstract long GetOriginalFileSize();
 
         public void Dispose()
         {
