@@ -34,7 +34,7 @@ namespace GZipTest
             }
             finally
             {
-                _processor.Cancel();
+                _processor?.Cancel();
             }
 
             Console.ReadKey();
