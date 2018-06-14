@@ -43,8 +43,8 @@
   <ItemGroup>
     <Compile Include="Blocks\Block.cs" />
     <Compile Include="Blocks\BlockQueue.cs" />
-    <Compile Include="Blocks\BlockReader.cs" />
-    <Compile Include="Blocks\BlockWriter.cs" />
+    <Compile Include="Blocks\Readers\BlockReader.cs" />
+    <Compile Include="Blocks\Writers\BlockWriter.cs" />
     <Compile Include="Blocks\Readers\CompressedBlockReader.cs" />
     <Compile Include="Blocks\Readers\UncompressedBlockReader.cs" />
     <Compile Include="Blocks\Writers\CompressedBlockWriter.cs" />

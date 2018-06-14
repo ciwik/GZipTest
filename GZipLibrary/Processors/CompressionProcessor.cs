@@ -9,29 +9,26 @@ namespace GZipLibrary.Processors
 {
     public class CompressionProcessor : BaseProcessor
     {
-        public CompressionProcessor(string inputFilePath, string outputFilePath, int blockSize, int queueSize) : base(inputFilePath, outputFilePath, queueSize)
+        public CompressionProcessor(Stream inputStream, Stream outputStream, int blockSize, int queueSize) : base(inputStream, outputStream, queueSize)
         {
             BlockSize = blockSize;
         }
 
         protected override BlockReader GetBlockReader()
         {
-            var fileStream = new FileStream(InputFilePath, FileMode.Open, FileAccess.Read);
-            FullFileSize = fileStream.Length;
-            return new UncompressedBlockReader(fileStream, BlockSize);
+            FullUncompressedStreamLength = InputStream.Length;
+            return new UncompressedBlockReader(InputStream, BlockSize);
         }
 
         protected override BlockWriter GetBlockWriter()
         {
-            var fileStream = new FileStream(OutputFilePath, FileMode.Create, FileAccess.Write);
-            
-            WriteNumberToStream(FullFileSize, fileStream);
-            WriteNumberToStream(BlockSize, fileStream);
+            WriteNumberToStream(FullUncompressedStreamLength, OutputStream);
+            WriteNumberToStream(BlockSize, OutputStream);
 
-            return new CompressedBlockWriter(fileStream);
+            return new CompressedBlockWriter(OutputStream);
         }
 
-        protected override void DoActionWithBlock(Block block)
+        protected override void MakeActionWithBlock(Block block)
         {
             using (var stream = new MemoryStream())
             {

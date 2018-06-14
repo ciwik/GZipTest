@@ -11,29 +11,26 @@ namespace GZipLibrary.Processors
     {
         private long _lastBlockSize, _blocksCount;
 
-        public DecompressionProcessor(string inputFilePath, string outputFilePath, int queueSize) : base(inputFilePath, outputFilePath, queueSize)
+        public DecompressionProcessor(Stream inputStream, Stream outputStream, int queueSize) : base(inputStream, outputStream, queueSize)
         {
         }
 
         protected override BlockReader GetBlockReader()
         {
-            var fileStream = new FileStream(InputFilePath, FileMode.Open, FileAccess.Read);
-            
-            FullFileSize = ReadNumberFromStream(fileStream);
-            BlockSize = ReadNumberFromStream(fileStream);
-            _lastBlockSize = FullFileSize % BlockSize;
-            _blocksCount = FullFileSize / BlockSize + (_lastBlockSize == 0 ? 0 : 1);
+            FullUncompressedStreamLength = ReadNumberFromStream(InputStream);
+            BlockSize = ReadNumberFromStream(InputStream);
+            _lastBlockSize = FullUncompressedStreamLength % BlockSize;
+            _blocksCount = FullUncompressedStreamLength / BlockSize + (_lastBlockSize == 0 ? 0 : 1);
 
-            return new CompressedBlockReader(fileStream);
+            return new CompressedBlockReader(InputStream);
         }
 
         protected override BlockWriter GetBlockWriter()
         {
-            var fileStream = new FileStream(OutputFilePath, FileMode.Create, FileAccess.Write);
-            return new UncompressedBlockWriter(fileStream, BlockSize);
+            return new UncompressedBlockWriter(OutputStream, BlockSize);
         }
 
-        protected override void DoActionWithBlock(Block block)
+        protected override void MakeActionWithBlock(Block block)
         {
             using (var stream = new MemoryStream(block.Data))
             {

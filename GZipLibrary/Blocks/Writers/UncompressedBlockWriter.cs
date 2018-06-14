@@ -4,7 +4,7 @@ namespace GZipLibrary.Blocks.Writers
 {
     public class UncompressedBlockWriter : BlockWriter
     {
-        private long _blockSize;
+        private readonly long _blockSize;
 
         public UncompressedBlockWriter(Stream stream, long blockSize) : base(stream)
         {
@@ -13,8 +13,15 @@ namespace GZipLibrary.Blocks.Writers
 
         public override void Write(Block block)
         {
-            Stream.Seek(_blockSize * block.Id, SeekOrigin.Begin);
-            Stream.Write(block.Data, 0, (int)block.Size);
+            try
+            { 
+                Stream.Seek(_blockSize * block.Id, SeekOrigin.Begin);
+                Stream.Write(block.Data, 0, (int)block.Size);
+            }
+            catch (IOException e)
+            {
+                throw new FileNotFoundException("Can't write to stream", e);
+            }
         }
     }
 }

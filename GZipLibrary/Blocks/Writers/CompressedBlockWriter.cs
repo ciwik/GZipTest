@@ -11,7 +11,15 @@ namespace GZipLibrary.Blocks.Writers
         public override void Write(Block block)
         {
             var data = block.GetBytes();
-            Stream.Write(data, 0, data.Length);
+
+            try
+            {
+                Stream.Write(data, 0, data.Length);
+            }
+            catch (IOException e)
+            {
+                throw new FileNotFoundException("Can't write to stream", e);
+            }
         }
     }
 }

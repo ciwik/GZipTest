@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 
-namespace GZipLibrary.Blocks
+namespace GZipLibrary.Blocks.Readers
 {
     public abstract class BlockReader : IDisposable
     {
@@ -9,7 +9,7 @@ namespace GZipLibrary.Blocks
 
         protected BlockReader(Stream stream)
         {
-            Stream = stream;
+            Stream = stream ?? throw new ArgumentNullException(nameof(stream));
         }
 
         public abstract bool Read(out Block block);

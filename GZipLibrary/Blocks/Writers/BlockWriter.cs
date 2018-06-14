@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 
-namespace GZipLibrary.Blocks
+namespace GZipLibrary.Blocks.Writers
 {
     public abstract class BlockWriter : IDisposable
     {
@@ -9,7 +9,7 @@ namespace GZipLibrary.Blocks
         
         protected BlockWriter(Stream stream)
         {
-            Stream = stream;
+            Stream = stream ?? throw new ArgumentNullException(nameof(stream));
         }
 
         public abstract void Write(Block block);

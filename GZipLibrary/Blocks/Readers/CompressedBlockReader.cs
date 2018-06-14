@@ -12,15 +12,23 @@ namespace GZipLibrary.Blocks.Readers
         public override bool Read(out Block block)
         {
             var buffer = new byte[2 * sizeof(long)];
-            Stream.Read(buffer, 0, buffer.Length);
-            var id = BitConverter.ToInt64(buffer, 0);
-            var size = BitConverter.ToInt64(buffer, sizeof(long));
 
-            buffer = new byte[size];
-            if (Stream.Read(buffer, 0, buffer.Length) > 0)
+            try
             {
-                block = new Block(id, buffer);
-                return true;
+                Stream.Read(buffer, 0, buffer.Length);
+                var id = BitConverter.ToInt64(buffer, 0);
+                var size = BitConverter.ToInt64(buffer, sizeof(long));
+
+                buffer = new byte[size];
+                if (Stream.Read(buffer, 0, buffer.Length) > 0)
+                {
+                    block = new Block(id, buffer);
+                    return true;
+                }
+            }
+            catch (IOException e)
+            {
+                throw new FileNotFoundException("Can't read from stream", e);
             }
 
             block = new Block();
