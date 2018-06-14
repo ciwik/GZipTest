@@ -37,8 +37,8 @@ namespace GZipLibrary.Processors
             var blockReader = GetBlockReader();
             var blockWriter = GetBlockWriter();
 
-            var readingThread = CreateThread(() => Read(blockReader));
-            var writingThread = CreateThread(() => Write(blockWriter));
+            var readingThread = CreateThread(() => Read(blockReader), HandleThreadException);
+            var writingThread = CreateThread(() => Write(blockWriter), HandleThreadException);
 
             readingThread.Start();
             writingThread.Start();
