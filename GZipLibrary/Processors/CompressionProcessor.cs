@@ -22,7 +22,9 @@ namespace GZipLibrary.Processors
 
         protected override BlockWriter GetBlockWriter()
         {
+            //Write length of the original stream to the first 8 bytes of output stream
             WriteNumberToStream(FullUncompressedStreamLength, OutputStream);
+            //Write the block size to the second 8 bytes of output stream
             WriteNumberToStream(BlockSize, OutputStream);
 
             return new CompressedBlockWriter(OutputStream);

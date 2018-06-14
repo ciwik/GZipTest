@@ -17,10 +17,11 @@ namespace GZipTest.CommandLine
             }
 
             CompressionMode compressionMode;
-            if (args[0].Equals(CompressionCommand))
+            if (args[0] == CompressionCommand)
             {
                 compressionMode = CompressionMode.Compress;
-            } else if (args[0].Equals(DecompressionCommand))
+            }
+            else if (args[0] == DecompressionCommand)
             {
                 compressionMode = CompressionMode.Decompress;
             }

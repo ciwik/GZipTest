@@ -92,11 +92,9 @@ namespace GZipTest
 
         private static bool GetUserResponse()
         {
-            string response = string.Empty;
-
             while (true)
             {
-                response = Console.ReadLine();
+                var response = Console.ReadLine();
                 if (response == null)
                 {
                     continue;
@@ -104,12 +102,12 @@ namespace GZipTest
 
                 response = response.ToLower();
 
-                if (response.Equals("y"))
+                if (response == "y")
                 {
                     return true;
                 }
 
-                if (response.Equals("n"))
+                if (response == "n")
                 {
                     return false;
                 }

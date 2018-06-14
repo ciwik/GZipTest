@@ -29,6 +29,8 @@ namespace GZipLibrary.Processors
 
         public void Run()
         {
+            //One of the physical threads is given for reading, another one - for writing, all other threads - for compression.
+            //If the number of the physical threads in the system are less than two, then use one thread for compression
             int compressionThreadsNumber = (Environment.ProcessorCount > 2) ? Environment.ProcessorCount - 2 : 1;
             _actionThreads = new Dictionary<Thread, ManualResetEvent>();
 

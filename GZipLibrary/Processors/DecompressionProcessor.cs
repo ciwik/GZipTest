@@ -17,7 +17,9 @@ namespace GZipLibrary.Processors
 
         protected override BlockReader GetBlockReader()
         {
+            //Read length of the original stream from the first 8 bytes of stream
             FullUncompressedStreamLength = ReadNumberFromStream(InputStream);
+            //Read the block size from the second 8 bytes of output stream
             BlockSize = ReadNumberFromStream(InputStream);
             _lastBlockSize = FullUncompressedStreamLength % BlockSize;
             _blocksCount = FullUncompressedStreamLength / BlockSize + (_lastBlockSize == 0 ? 0 : 1);
