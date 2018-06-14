@@ -45,7 +45,7 @@ namespace GZipLibrary.Processors
 
             for (int i = 0; i < compressionThreadsNumber; i++)
             {
-                var thread = CreateThread(MakeActionWithNextBlock);
+                var thread = CreateThread(MakeActionWithNextBlock, HandleThreadException);
                 _actionThreads.Add(thread, new ManualResetEvent(false)); ;
                 thread.Start();
             }
@@ -60,6 +60,9 @@ namespace GZipLibrary.Processors
         public void Cancel()
         {
             _isCancelled = true;
+
+            _readBlockQueue.Close();
+            _writeBlockQueue.Close();            
         }
 
         protected abstract BlockReader GetBlockReader();
@@ -87,9 +90,19 @@ namespace GZipLibrary.Processors
             writer.Dispose();
         }
 
-        private Thread CreateThread(ThreadStart action)
+        private Thread CreateThread(ThreadStart action, Action<Exception> exceptionHandler)
         {
-            return new Thread(action)
+            return new Thread(() =>
+            {
+                try
+                {
+                    action.Invoke();
+                }
+                catch (Exception e)
+                {
+                    exceptionHandler.Invoke(e);
+                }
+            })
             {
                 //Use a priority below normal so as not to interfere with Garbage Collector
                 Priority = ThreadPriority.BelowNormal,
@@ -106,6 +119,11 @@ namespace GZipLibrary.Processors
             }
 
             _actionThreads[Thread.CurrentThread].Set();
-        }   
+        }
+
+        private void HandleThreadException(Exception e)
+        {
+            throw e;
+        }
     }
 }

@@ -32,6 +32,10 @@ namespace GZipTest
             {
                 Console.WriteLine(e.Message);
             }
+            finally
+            {
+                _processor.Cancel();
+            }
 
             Console.ReadKey();
         }
