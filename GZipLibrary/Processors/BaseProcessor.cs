@@ -91,6 +91,7 @@ namespace GZipLibrary.Processors
         {
             return new Thread(action)
             {
+                //Use a priority below normal so as not to interfere with Garbage Collector
                 Priority = ThreadPriority.BelowNormal,
                 IsBackground = true
             };
